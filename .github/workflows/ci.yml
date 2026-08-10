@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # Tests run against the mock connector, so no secrets are needed and
+      # forks can run CI. Keep it that way.
+      - name: Install
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt pytest
+
+      # Bare `pytest`, not `python -m pytest` — the latter silently adds the
+      # working directory to sys.path and would hide import-path breakage.
+      - name: Test
+        run: pytest -q
+
+      - name: Retrieval quality gate
+        run: python eval_retrieval.py
+
+      # Fails the build if a token was committed. Cheap, and the one mistake
+      # you cannot undo with a revert.
+      - name: Secret scan
+        run: |
+          if grep -rIEn "hf_[A-Za-z0-9]{30,}|eyJ[A-Za-z0-9_-]{40,}" \
+             --exclude-dir=.git --exclude=.env.example --exclude=ci.yml .; then
+            echo "::error::Possible credential committed"
+            exit 1
+          fi
