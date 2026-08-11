@@ -1,22 +1,4 @@
-"""A fake SEOmonitor that needs no account.
-
-Drop-in replacement for SEOMonitorClient: identical method signatures, response
-shapes copied from the real v3 docs. Set USE_MOCK_SEO=true in .env and the app
-behaves as though live data is connected.
-
-The data is deterministic — seeded per keyword — so the same question gives the
-same answer every run. That makes it useful beyond just unblocking you: it's
-how you write tests for the agent without burning API quota or depending on a
-client's rankings staying still.
-
-The scenario is built to exercise the playbooks rather than to look pretty:
-a genuine visibility drop starting 12 days ago, concentrated in a handful of
-commercial keywords, two of which lost position to an AI Overview. Ask "why did
-visibility drop?" and the diagnostic sequence in playbooks.md will actually
-find something.
-
-Swap in a real provider later by writing one class with these same six methods.
-Nothing in core/ changes.
+"""mock data for SEO monitor (workaround for company profile issue for SEOmonitor)
 """
 
 from __future__ import annotations
@@ -68,8 +50,7 @@ class MockSEOMonitorClient:
     def __init__(self, *_: Any, **__: Any) -> None:
         self.api_key = "mock"
 
-    # ---------------------------------------------------------------- shapes
-
+  
     def tracked_campaigns(self, campaign_ids: str | None = None, company_id: int | None = None) -> Any:
         return [{
             "campaign_info": {

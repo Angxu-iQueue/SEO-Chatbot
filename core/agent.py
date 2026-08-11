@@ -1,22 +1,3 @@
-"""The agent loop.
-
-Model access goes through Hugging Face Inference Providers, which exposes an
-OpenAI-compatible endpoint at https://router.huggingface.co/v1. That means the
-`openai` SDK works unchanged and you can swap models — or move to a model you
-host yourself on Inference Endpoints — by editing one env var.
-
-Pick a model with real tool-calling support, and confirm it is currently
-served before relying on it — the warm model list changes:
-
-    curl -s https://router.huggingface.co/v1/models \
-      -H "Authorization: Bearer $HF_TOKEN" | jq -r '.data[].id'
-
-Append a routing policy to the model id: `:fastest` (the default),
-`:cheapest` (lowest price per output token), or a named provider like
-`:groq`. `:cheapest` is the right default here — a tool-calling agent makes
-several LLM round trips per question.
-"""
-
 from __future__ import annotations
 
 import json
@@ -157,8 +138,7 @@ class SEOAgent:
                     {"role": "tool", "tool_call_id": call.id, "content": result}
                 )
 
-        # Out of rounds. Ask for a best-effort answer from what we gathered
-        # rather than returning nothing.
+        
         messages.append(
             {
                 "role": "user",

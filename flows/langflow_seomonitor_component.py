@@ -1,15 +1,3 @@
-"""A Langflow custom component that puts SEOmonitor on the canvas.
-
-Drop this into Langflow (New Custom Component -> paste -> Save) and SEOmonitor
-becomes a node you can wire into any flow. With Tool Mode enabled on the
-inputs, an Agent node can call it directly, which gives you the same
-tool-calling behaviour as core/agent.py but built by dragging.
-
-Requires `requests`. If you keep this repo's `connectors/` package on
-Langflow's PYTHONPATH you can import SEOMonitorClient instead of the inline
-call below and have one implementation for both paths.
-"""
-
 from __future__ import annotations
 
 import requests

@@ -1,8 +1,4 @@
-"""Gradio front end. Runs locally with `python app.py` and unchanged as a
-Hugging Face Space (SDK: gradio).
-
-Space secrets to set: HF_TOKEN, SEOMONITOR_API_KEY.
-"""
+##py app.py
 
 from __future__ import annotations
 
@@ -12,13 +8,13 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-# Must run before importing anything that reads env vars at module scope.
+
 load_dotenv()
 
-from connectors.seomonitor import SEOMonitorClient  # noqa: E402
-from core.agent import SEOAgent  # noqa: E402
-from core.kb import KnowledgeBase  # noqa: E402
-from core.tools import Dispatcher  # noqa: E402
+from connectors.seomonitor import SEOMonitorClient  
+from core.agent import SEOAgent  
+from core.kb import KnowledgeBase  
+from core.tools import Dispatcher  
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 log = logging.getLogger("app")
@@ -61,7 +57,7 @@ def respond(message: str, history: list[dict], campaign_id: str):
     try:
         turn = agent.run(message, history=prior, campaign_id=cid)
         answer, trace = turn.answer, turn.tool_calls
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc: 
         log.exception("turn failed")
         answer = f"That request failed: {type(exc).__name__}: {exc}"
         trace = []
@@ -86,7 +82,7 @@ def reindex() -> str:
     try:
         count = kb.build()
         return f"Reindexed {count} chunks."
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc: 
         return f"Reindex failed: {exc}"
 
 
@@ -96,8 +92,6 @@ with gr.Blocks(title="SEO Analyst") as demo:
 
     with gr.Row():
         with gr.Column(scale=3):
-            # Gradio 6 removed the `type` argument — messages format is now the
-            # only one, so the {"role", "content"} dicts below are correct.
             chat = gr.Chatbot(height=520, show_label=False)
             box = gr.Textbox(
                 placeholder="Which keywords lost the most traffic this month?",
@@ -137,9 +131,6 @@ with gr.Blocks(title="SEO Analyst") as demo:
 
 
 if __name__ == "__main__":
-    # Optional password gate. Set APP_USER and APP_PASSWORD to require login —
-    # do this for any deployment reachable by more than you, since the bot can
-    # read client campaign data and spend your inference credits.
     auth = None
     if os.getenv("APP_USER") and os.getenv("APP_PASSWORD"):
         auth = (os.environ["APP_USER"], os.environ["APP_PASSWORD"])
@@ -147,7 +138,6 @@ if __name__ == "__main__":
     else:
         log.warning("no APP_USER/APP_PASSWORD set — the app is unauthenticated")
 
-    # theme moved from Blocks() to launch() in Gradio 6.
     demo.launch(
         server_name=os.getenv("HOST", "127.0.0.1"),
         server_port=int(os.getenv("PORT", "7860")),

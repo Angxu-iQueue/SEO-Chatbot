@@ -1,16 +1,3 @@
-"""Client for the SEOmonitor API v3.
-
-Only endpoints whose paths are confirmed against the public docs
-(https://api-docs.seomonitor.com) are exposed here. Add more by following the
-same pattern — every call goes through `_get`, so rate limiting, caching,
-retries and error shaping are handled once.
-
-Auth: the raw API token goes in the `Authorization` header. There is no
-`Bearer` prefix. Get it from Account Settings > Edit Profile in SEOmonitor.
-
-Documented limits: 10 requests/second, 1000 rows/request, 10,000 requests/day.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -27,8 +14,6 @@ log = logging.getLogger(__name__)
 
 BASE_URL = os.getenv("SEOMONITOR_BASE_URL", "https://apigw.seomonitor.com/v3")
 
-# Abbreviations the API returns in `serp_data[].feature`. Expanded before the
-# payload reaches the model so it never has to guess what "fsn" means.
 SERP_FEATURES: dict[str, str] = {
     "aio": "AI Overview", "aib": "AI Button", "adt": "Ads Pack Top",
     "def": "Definitions", "dir": "Directions", "fsn": "Featured Snippet",
@@ -91,8 +76,6 @@ class _TTLCache:
             if not hit:
                 return None
             expires_at, value = hit
-            # >= not >, so a zero TTL expires immediately and behaviour does not
-            # depend on clock resolution (Windows time.time() is ~15ms coarse).
             if time.time() >= expires_at:
                 del self._store[key]
                 return None
@@ -126,11 +109,10 @@ class SEOMonitorClient:
         self._session.headers.update(
             {"Authorization": self.api_key, "Accept": "application/json"}
         )
-        self._bucket = _TokenBucket(rate_per_sec=8, burst=8)  # headroom under 10/s
+        self._bucket = _TokenBucket(rate_per_sec=8, burst=8) 
         self._cache = _TTLCache(ttl_seconds=int(os.getenv("SEOMONITOR_CACHE_TTL", "900")))
 
-    # ---------------------------------------------------------------- internals
-
+   
     def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         params = {k: v for k, v in (params or {}).items() if v is not None}
         cache_key = f"{path}?{sorted(params.items())}"
@@ -168,8 +150,7 @@ class SEOMonitorClient:
 
         raise SEOMonitorError(429, "Rate limit exceeded after retries")
 
-    # ------------------------------------------------------------------- public
-
+   
     def tracked_campaigns(
         self, campaign_ids: str | None = None, company_id: int | None = None
     ) -> Any:
@@ -266,7 +247,6 @@ class SEOMonitorClient:
         )
 
 
-# --------------------------------------------------------------- normalisation
 
 def expand_serp_features(payload: Any) -> Any:
     """Rewrite SERP feature codes to full names, in place, at any depth.

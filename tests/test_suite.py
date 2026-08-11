@@ -1,15 +1,3 @@
-"""Test suite. No network, no credentials, no API quota.
-
-    pytest -q
-
-The mock connector is what makes this possible: the agent loop can be driven
-end to end against deterministic data, so these run in CI on every push.
-
-Deliberately not tested here: embedding quality and answer quality. Those are
-not unit-testable. Retrieval is measured by eval_retrieval.py; answer quality
-needs a human reading the Tool calls panel.
-"""
-
 from __future__ import annotations
 
 import inspect
@@ -48,7 +36,6 @@ def dispatcher():
     return Dispatcher(StubKB(), MockSEOMonitorClient())
 
 
-# --------------------------------------------------------------- contract
 
 def test_mock_matches_real_client_surface():
     """The mock must stay a drop-in replacement, or demo mode diverges from
@@ -79,11 +66,8 @@ def test_schemas_are_wellformed():
         fn = schema["function"]
         assert schema["type"] == "function"
         assert fn["description"].strip(), f"{fn['name']} has no description"
-        # The description is what the model uses to choose. Terse ones misfire.
         assert len(fn["description"]) > 60, f"{fn['name']} description too thin"
 
-
-# ------------------------------------------------------------ normalisation
 
 def test_serp_codes_are_expanded():
     payload = {"serp_data": {"desktop": [{"feature": "aio"}, {"feature": "fsn"}]}}
@@ -116,7 +100,6 @@ def test_default_window_is_iso_and_ordered():
     assert start < end and len(start) == len(end) == 10
 
 
-# ----------------------------------------------------------- infrastructure
 
 def test_cache_returns_a_live_entry():
     cache = _TTLCache(ttl_seconds=900)
@@ -171,7 +154,6 @@ def test_token_bucket_throttles():
     assert time.monotonic() - start >= 0.15
 
 
-# --------------------------------------------------------------- dispatcher
 
 def test_unknown_tool_returns_error_not_raises(dispatcher):
     assert "error" in json.loads(dispatcher.run("nope", {}))
@@ -208,7 +190,6 @@ def test_dispatcher_always_returns_a_json_string(dispatcher):
         json.loads(out)
 
 
-# -------------------------------------------------------------- mock shape
 
 def test_mock_is_deterministic():
     a = MockSEOMonitorClient().keywords(CAMPAIGN)
@@ -233,7 +214,6 @@ def test_mock_search_filter_works():
     assert rows and all("trail" in r["keyword"] for r in rows)
 
 
-# ------------------------------------------------------------- agent loop
 
 class FakeMessage:
     def __init__(self, content=None, tool_calls=None):
@@ -314,4 +294,4 @@ def test_agent_survives_a_failing_tool(monkeypatch):
         FakeMessage(tool_calls=[FakeToolCall("get_keywords", {"campaign_id": "not-an-int"})]),
         FakeMessage("I could not read that campaign ID."),
     ], monkeypatch).run("keywords please")
-    assert turn.answer  # the turn completed rather than raising
+    assert turn.answer 

@@ -1,19 +1,3 @@
-"""Knowledge base: chunk -> embed (Hugging Face) -> FAISS -> rerank.
-
-Two models, both from the Hub, both running locally in the Space:
-
-  BAAI/bge-small-en-v1.5      384-dim bi-encoder, fast, indexes everything
-  BAAI/bge-reranker-base      cross-encoder, slow, only rescores the top 20
-
-The bi-encoder alone gets you roughly the right neighbourhood; the reranker is
-what makes the difference between "a document about rankings" and "the document
-that answers this question". Swap either for a bigger sibling (bge-base,
-bge-large) by changing the env var — nothing else needs to move.
-
-Rebuilding is cheap and idempotent, so `build()` is safe to call from a button
-in the UI. That's what keeps the bot's knowledge editable without a redeploy.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -32,7 +16,6 @@ EMBED_MODEL = os.getenv("EMBED_MODEL", "BAAI/bge-small-en-v1.5")
 RERANK_MODEL = os.getenv("RERANK_MODEL", "BAAI/bge-reranker-base")
 CHUNK_CHARS = int(os.getenv("KB_CHUNK_CHARS", "1200"))
 CHUNK_OVERLAP = int(os.getenv("KB_CHUNK_OVERLAP", "180"))
-# Below this reranker score the bot says it doesn't know rather than guessing.
 MIN_RELEVANCE = float(os.getenv("KB_MIN_RELEVANCE", "0.25"))
 
 
@@ -107,8 +90,7 @@ class KnowledgeBase:
         self._index = None
         self._chunks: list[Chunk] = []
 
-    # ------------------------------------------------------------ lazy models
-
+   
     @property
     def encoder(self):
         if self._encoder is None:
@@ -127,8 +109,7 @@ class KnowledgeBase:
             self._reranker = CrossEncoder(RERANK_MODEL)
         return self._reranker
 
-    # ----------------------------------------------------------------- build
-
+ 
     def build(self) -> int:
         """(Re)index everything under kb_dir. Returns the chunk count."""
         import faiss
@@ -141,7 +122,6 @@ class KnowledgeBase:
             show_progress_bar=False,
         ).astype("float32")
 
-        # Normalised vectors + inner product == cosine similarity.
         index = faiss.IndexFlatIP(vectors.shape[1])
         index.add(vectors)
 
@@ -168,8 +148,7 @@ class KnowledgeBase:
             for d in json.loads((self.index_dir / "chunks.json").read_text("utf-8"))
         ]
 
-    # ---------------------------------------------------------------- search
-
+  
     def search(self, query: str, k: int = 5, pool: int = 20) -> list[dict]:
         """Retrieve `pool` candidates by embedding, rerank, return the top `k`
         that clear MIN_RELEVANCE. An empty list is a valid, useful answer — it
@@ -177,7 +156,6 @@ class KnowledgeBase:
         if self._index is None:
             self.load()
 
-        # bge models want this prefix on queries but not on documents.
         query_vec = self.encoder.encode(
             [f"Represent this sentence for searching relevant passages: {query}"],
             normalize_embeddings=True,

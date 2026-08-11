@@ -1,14 +1,3 @@
-"""Tool definitions the model chooses between at runtime.
-
-This module is where "dynamic" lives. There is no fixed dialogue tree: the
-model reads the question, picks tools, reads the results and decides whether it
-needs another call. Adding a capability means adding one entry to TOOL_SCHEMAS
-and one method to Dispatcher — no routing logic to update.
-
-Schemas follow the OpenAI function-calling format, which is what Hugging Face's
-router speaks.
-"""
-
 from __future__ import annotations
 
 import json
@@ -200,12 +189,11 @@ class Dispatcher:
             )
         except TypeError as exc:
             return json.dumps({"error": f"Bad arguments for {name}: {exc}"})
-        except Exception as exc:  # noqa: BLE001 — surface anything to the model
+        except Exception as exc:  
             log.exception("%s crashed", name)
             return json.dumps({"error": f"{type(exc).__name__}: {exc}", "tool": name})
 
-    # ------------------------------------------------------------------ tools
-
+   
     def _require_api(self) -> SEOMonitorClient:
         if self.api is None:
             raise ToolUnavailable(

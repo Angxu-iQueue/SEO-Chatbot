@@ -1,12 +1,3 @@
-"""Preflight check. Run this before app.py, and again whenever something breaks.
-
-    python check_setup.py
-
-It tests each layer on its own — Python, packages, HF token, SEOmonitor token,
-knowledge base — so a failure tells you which one to fix instead of leaving you
-guessing at a stack trace from the middle of an agent loop.
-"""
-
 from __future__ import annotations
 
 import os
@@ -29,7 +20,7 @@ def main() -> int:
     except ImportError:
         pass
 
-    # 1. Python -----------------------------------------------------------
+
     major, minor = sys.version_info[:2]
     if (major, minor) < (3, 10):
         check("Python version", FAIL, f"{major}.{minor} — need 3.10+")
@@ -39,7 +30,7 @@ def main() -> int:
     else:
         check("Python version", PASS, f"{major}.{minor}")
 
-    # 2. Packages ---------------------------------------------------------
+    
     for module, label in [
         ("gradio", "gradio"),
         ("openai", "openai"),
@@ -54,7 +45,7 @@ def main() -> int:
             check(f"package {label}", FAIL, str(exc))
             return 1
 
-    # 3. Hugging Face -----------------------------------------------------
+  
     import requests
 
     hf_token = os.getenv("HF_TOKEN", "")
@@ -85,10 +76,10 @@ def main() -> int:
                       "List warm models: GET https://router.huggingface.co/v1/models")
             else:
                 check("HF inference", FAIL, f"{r.status_code}: {r.text[:120]}")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc: 
             check("HF inference", FAIL, f"{type(exc).__name__}: {exc}")
 
-    # 4. Tool calling -----------------------------------------------------
+   
     if hf_token:
         try:
             r = requests.post(
@@ -121,10 +112,10 @@ def main() -> int:
             check("tool calling", PASS if called else FAIL,
                   "model emitted a tool call" if called
                   else "model did not call the tool — pick a different HF_MODEL")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc: 
             check("tool calling", FAIL, f"{type(exc).__name__}: {exc}")
 
-    # 5. SEOmonitor -------------------------------------------------------
+    
     seo_token = os.getenv("SEOMONITOR_API_KEY", "")
     if not seo_token:
         check("SEOMONITOR_API_KEY", WARN, "not set — knowledge-base-only mode")
@@ -150,10 +141,10 @@ def main() -> int:
                 check("SEOmonitor", FAIL, "403 — token has no access to this data")
             else:
                 check("SEOmonitor", FAIL, f"{r.status_code}: {r.text[:120]}")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc: 
             check("SEOmonitor", FAIL, f"{type(exc).__name__}: {exc}")
 
-    # 6. Knowledge base ---------------------------------------------------
+  
     try:
         from core.kb import KnowledgeBase
 
@@ -167,7 +158,7 @@ def main() -> int:
             check("knowledge base", WARN,
                   "index built but nothing matched the smoke-test query — "
                   "expected if you replaced the seed documents")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  
         check("knowledge base", FAIL, f"{type(exc).__name__}: {exc}")
 
     failures = sum(1 for mark, _, _ in results if mark == FAIL)

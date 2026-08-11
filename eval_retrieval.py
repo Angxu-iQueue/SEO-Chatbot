@@ -1,16 +1,3 @@
-"""Measure retrieval quality before you touch a prompt.
-
-    python eval_retrieval.py
-
-Almost every "the bot gave a wrong answer" report is a retrieval failure, not a
-generation failure. This measures the retrieval half on its own, with no LLM
-involved, so it is free to run and fast to iterate on.
-
-Edit EVAL_SET: one question per row, plus a substring that must appear in the
-source of at least one retrieved passage. Aim for 25-30 questions covering every
-document. Below 0.85 recall@5, fix chunking or the documents — tuning the
-system prompt will not help.
-"""
 
 from __future__ import annotations
 
@@ -20,9 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from core.kb import KnowledgeBase  # noqa: E402
+from core.kb import KnowledgeBase 
 
-# (question, substring expected in the winning passage's source)
 EVAL_SET: list[tuple[str, str]] = [
     ("what does a rank of 100 mean", "seo-glossary"),
     ("how is visibility calculated", "seo-glossary"),
