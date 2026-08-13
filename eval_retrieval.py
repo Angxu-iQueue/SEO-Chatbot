@@ -57,7 +57,7 @@ def main() -> int:
             print(f"    wanted {expected}, got {got or '[nothing above threshold]'}")
 
     print(
-        "\nrecall@5 below 85%? The fix is in the documents, not the prompt:\n"
+        " \nrecall@5 below 85%? The fix is in the documents, not the prompt:\n"
         "  - nothing returned at all      -> lower KB_MIN_RELEVANCE\n"
         "  - wrong document returned      -> headings are too vague; the heading\n"
         "                                    is prepended to every chunk, so it\n"

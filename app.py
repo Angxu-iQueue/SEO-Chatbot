@@ -1,4 +1,3 @@
-##py app.py
 
 from __future__ import annotations
 
@@ -8,13 +7,13 @@ import os
 import gradio as gr
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 from connectors.seomonitor import SEOMonitorClient  
 from core.agent import SEOAgent  
 from core.kb import KnowledgeBase  
 from core.tools import Dispatcher  
+
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 log = logging.getLogger("app")
